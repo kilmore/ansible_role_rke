@@ -1,0 +1,5 @@
+# This will be used to download the needed roles
+---
+- src: https://github.com/kilmore/ansible_role_docker.git
+  name: docker
+

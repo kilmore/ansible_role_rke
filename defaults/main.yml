@@ -1,0 +1,10 @@
+---
+# defaults file for rke
+
+rke_binary_url: ""
+rke_config_dir: ""
+rke_ssh_user: ""
+
+
+cluster_name: ""
+rke_kubernetes_version: ""

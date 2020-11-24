@@ -1,0 +1,11 @@
+---
+- name: Converge
+  hosts: all
+  
+  roles:
+    - docker 
+  
+  tasks:
+    - name: "Include rke"
+      include_role:
+        name: "rke"
