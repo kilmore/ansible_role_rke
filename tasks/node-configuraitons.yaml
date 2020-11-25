@@ -22,6 +22,11 @@
   register: mount_flags_updated
   notify: restart docker
 
+- name: create dockerroot group
+  group:
+    name: dockerroot
+    state: present
+
 - name: Allow dockerroot group to access Docker daemon
   copy:
     content: '{ "group": "dockerroot" }'
@@ -31,9 +36,11 @@
 - name: Add RKE SSH user to dockerroot group
   user:
     name: "{{ rke_ssh_user }}"
-    groups: [dockerroot]
+    groups: [docker, dockerroot]
     append: yes
 
+
+    
 - name: Ensure firewalld is started
   service:
     name: firewalld
@@ -49,31 +56,45 @@
     immediate: yes
     permanent: yes
 
-# - name: Create sysctl settings file for bridge settings
-#   copy:
-#     dest: /etc/sysctl.d/k8s.conf
-#     content: |
-#       net.bridge.bridge-nf-call-ip6tables = 1
-#       net.bridge.bridge-nf-call-iptables = 1
-#   register: sysctl_k8s_conf
+# The trusted zone allows all traffic
+- name: Allow all traffic from cluster CIDR
+  firewalld:
+    zone: trusted
+    source: "10.1.1.0/24"
+    state: enabled
+    immediate: yes
+    permanent: yes
 
-# - name: Load new sysctl settings
-#   command: sysctl --system
-#   when: sysctl_k8s_conf is changed
+# The trusted zone allows all traffic
+- name: Allow all traffic from cluster CIDR
+  firewalld:
+    zone: trusted
+    source: "10.1.1.0/24"
+    state: enabled
+    immediate: yes
+    permanent: yes
 
-# # TO DO: Create and SE Linux Profile for RKI
-# - name: Ensure SELinux is disabled
-#   selinux:
-#     state: disabled
+- name: Create sysctl settings file for bridge settings
+  copy:
+    dest: /etc/sysctl.d/k8s.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+  notify: sysctl reload
 
-# - name: Remove swap volumes from /etc/fstab
-#   lineinfile:
-#     path: /etc/fstab
-#     state: absent
-#     # This should match all lines with an fstype of "swap"
-#     regexp: '^[^\s]+\s+[^\s]+\s+swap\s+'
-#   register: remove_swap_volumes
+# TO DO: Create and SE Linux Profile for RKI
+- name: Ensure SELinux is disabled
+  selinux:
+    state: disabled
 
-# - name: Disable swap
-#   command: swapoff --all
-#   when: remove_swap_volumes is changed
+- name: Remove swap volumes from /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    state: absent
+    # This should match all lines with an fstype of "swap"
+    regexp: '^[^\s]+\s+[^\s]+\s+swap\s+'
+  register: remove_swap_volumes
+
+- name: Disable swap
+  command: swapoff --all
+  # when: remove_swap_volumes is changed

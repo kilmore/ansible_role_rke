@@ -3,3 +3,6 @@
 
 - name: Install docker-ce (RedHat OS family)
   include_tasks: node-configuraitons.yaml
+
+# - name: Create the Cluster
+#   include_tasks: rke-up.yaml

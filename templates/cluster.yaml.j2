@@ -1,43 +1,125 @@
----
-
 cluster_name: "{{ cluster_name }}"
-
 kubernetes_version: "{{ rke_kubernetes_version }}"
 
 nodes:
-{% for host in ansible_play_hosts %}
-  - hostname_override: "{{ hostvars[host].ansible_hostname }}"
-    address: "{{ hostvars[host]['ansible_' + cluster_interface].ipv4.address }}"
-    user: {{ rke_ssh_user }}
-    role:
-      {{ hostvars[host].rke_node_roles | to_nice_yaml(indent=2) | indent(width=6) }}
-    ssh_key: |-
-      {{ rke_ssh_private_key | indent(width=6) }}
-{% endfor %}
+    {% for node in cluster_nodes %}
+    - address: {{ node.address }}
+      port: {{ node.port }}
+      role:
+      {%- for role in node.roles %}
+        - {{ role }}
+      {% endfor %}
+      user: {{ node.rke_ssh_user }}
+      docker_socket: {{ node.docker_socket }}
+      ssh_key: {{ node.ssh_key }}
+      ssh_key_path: {{ ssh_key_path }}
+      lables: {}
+      taints: {}
+    {% endfor %}
 
+services:
+  etcd:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    external_urls: []
+    ca_cert: ""
+    cert: ""
+    key: ""
+    path: ""
+    uid: 0
+    gid: 0
+    snapshot: null
+    retention: ""
+    creation: ""
+    backup_config: null
+  kube-api:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    service_cluster_ip_range: {{ service_cluster_cidr }}
+    service_node_port_range: ""
+    pod_security_policy: false
+    always_pull_images: false
+    secrets_encryption_config: null
+    audit_log: null
+    admission_configuration: null
+    event_rate_limit: null
+  kube-controller:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_cidr: {{ cluster_cidr }}
+    service_cluster_ip_range: {{ service_cluster_cidr }}
+  scheduler:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+  kubelet:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_domain: cluster.local
+    infra_container_image: ""
+    cluster_dns_server: 10.43.0.10
+    fail_swap_on: false
+    generate_serving_certificate: false
+  kubeproxy:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
 network:
-  {{ rke_network_config | to_nice_yaml(indent=2) | indent(width=2) }}
+  plugin: weave
+  options: {}
+  mtu: 0
+  node_selector: {}
+authentication:
+  strategy: x509
+  sans: []
+  webhook: null
 
+ssh_key_path: {{ ssh_key_path }}
+ssh_cert_path: ""
+ssh_agent_auth: false
+authorization:
+  mode: rbac
+  options: {}
+ignore_docker_version: false
+kubernetes_version: ""
+private_registries: []
 ingress:
-  {{ rke_ingress_config | to_nice_yaml(indent=2) | indent(width=2) }}
-
-{% if rke_cloud_provider_config is defined %}
+  provider: ""
+  options: {}
+  node_selector: {}
+  extra_args: {}
+  dns_policy: ""
+  extra_envs: []
+  extra_volumes: []
+  extra_volume_mounts: []
+cluster_name: ""
 cloud_provider:
-  {{ rke_cloud_provider_config | to_nice_yaml(indent=2) | indent(width=2) }}
-{% endif %}
-
-{% if rke_cloud_provider_addons is defined or rke_extra_addons is defined %}
-addons: |-
-  {{ rke_cloud_provider_addons | default('') | indent(width=2) }}
-  {{ rke_extra_addons | default('') | indent(width=2) }}
-{% endif %}
-
-{% set addons_include = (rke_cloud_provider_addons_include | default([], true)) + (rke_extra_addons_include | default([], true)) %}
-{% if addons_include %}
-addons_include:
-  {{ addons_include | to_nice_yaml(indent=2) | indent(width=2) }}
-{% endif %}
-
-{% if rke_cloud_provider_extra_config is defined or rke_extra_config is defined %}
-{{ rke_cloud_provider_extra_config | default({}, true) | combine(rke_extra_config | default({}, true), recursive=True) | to_nice_yaml(indent=2) }}
-{% endif %}
+  name: ""
+prefix_path: ""
+addon_job_timeout: 0
+bastion_host:
+  address: ""
+  port: ""
+  user: ""
+  ssh_key: ""
+  ssh_key_path: ""
+  ssh_cert: ""
+  ssh_cert_path: ""
+monitoring:
+  provider: ""
+  options: {}
+  node_selector: {}
+restore:
+  restore: false
+  snapshot_name: ""
+dns: null
