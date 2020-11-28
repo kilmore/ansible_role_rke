@@ -33,14 +33,12 @@
     dest: /etc/docker/daemon.json
   register: docker_daemon_config
 
-- name: Add RKE SSH user to dockerroot group
+- name: Add RKE SSH user to docker groups
   user:
     name: "{{ rke_ssh_user }}"
     groups: [docker, dockerroot]
     append: yes
 
-
-    
 - name: Ensure firewalld is started
   service:
     name: firewalld

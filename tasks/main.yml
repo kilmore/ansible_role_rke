@@ -1,8 +1,16 @@
 ---
 # tasks file for rke
 
-- name: Install docker-ce (RedHat OS family)
-  include_tasks: node-configuraitons.yaml
+- name: Install docker-ce (el OS family)
+  include_tasks: node-configurations.yaml
+  tags: rkeCommon
+
+- name: test
+  debug: 
+    msg: "what"
+  tags: 
+    - rkeManagement
 
 # - name: Create the Cluster
 #   include_tasks: rke-up.yaml
+#   tags: rkeManagement
