@@ -1,3 +1,4 @@
+
 cluster_name: "{{ cluster_name }}"
 kubernetes_version: "{{ rke_kubernetes_version }}"
 
@@ -9,14 +10,15 @@ nodes:
       {%- for role in node.roles %}
         - {{ role }}
       {% endfor %}
-      user: {{ node.rke_ssh_user }}
+      user: {{ rke_ssh_user }}
       docker_socket: {{ node.docker_socket }}
-      ssh_key: {{ node.ssh_key }}
+      ssh_key: {{ ssh_key }}
       ssh_key_path: {{ ssh_key_path }}
       lables: {}
       taints: {}
     {% endfor %}
 
+{#
 services:
   etcd:
     image: ""
@@ -123,3 +125,4 @@ restore:
   restore: false
   snapshot_name: ""
 dns: null
+#}
